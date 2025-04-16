@@ -7,11 +7,11 @@ import models.MenuItem;
 import models.Order;
 import models.Restaurant;
 import org.bson.Document;
-import org.bson.types.ObjectId;
-import services.RestaurantService;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
 public class OrderService {
     private final MongoDatabase db;
@@ -33,13 +33,9 @@ public class OrderService {
         restaurantService.listRestaurants();
         System.out.print("Enter restaurant ID: ");
         int restId = Integer.parseInt(scanner.nextLine());
-        Restaurant restaurant = restaurants.stream()
-                .filter(r -> r.getId() == restId)
-                .findFirst().orElse(null);
-        if (restaurant == null) {
-            System.out.println("Restaurant not found!");
-            return;
-        }
+
+        Restaurant restaurant = getRestaurantById(restId);
+
         List<MenuItem> menu = restaurant.getMenu();
         if (menu.isEmpty()) {
             System.out.println("No menu items!");
@@ -74,42 +70,71 @@ public class OrderService {
         System.out.println("Order placed with id: " + nextOrderId);
     }
 
-    public void trackOrder(Scanner scanner) {
-        System.out.print("Enter order ID: ");
-        int orderId = Integer.parseInt(scanner.nextLine());
-        Document doc = db.getCollection("orders")
-                .find(new Document("_id", orderId)).first();
-        if (doc == null) {
-            System.out.println("Order not found!");
-            return;
+    public Restaurant getRestaurantById(int id) {
+        try {
+            List<Restaurant> restaurants = restaurantService.getAllRestaurants();
+            Restaurant restaurant = restaurants.stream()
+                    .filter(r -> r.getId() == id)
+                    .findFirst().orElse(null);
+            if (restaurant == null) {
+                System.out.println("Restaurant not found!");
+                return null;
+            }
+            return restaurant;
+        } catch (Exception e) {
+            System.out.println("Error occurred while fetching the restaurant!" + e.getMessage());
+            return null;
         }
-        Order order = Order.fromDocument(doc);
-        System.out.println("Order status: " + order.getStatus());
+    }
+
+    public void trackOrder(Scanner scanner) {
+        try {
+            System.out.print("Enter order ID: ");
+            int orderId = Integer.parseInt(scanner.nextLine());
+            Document doc = db.getCollection("orders")
+                    .find(new Document("_id", orderId)).first();
+            if (doc == null) {
+                System.out.println("Order not found!");
+                return;
+            }
+            Order order = Order.fromDocument(doc);
+            System.out.println("Order status: " + order.getStatus());
+        } catch (NumberFormatException e) {
+            System.out.println("Error occurred while tracking order." + e.getMessage());
+        }
     }
 
     public void listOrders() {
-        MongoCollection<Document> orders = db.getCollection("orders");
-        System.out.println("\n--- Orders ---");
-        for (Document doc : orders.find()) {
-            Order order = Order.fromDocument(doc);
-            System.out.println(order.getId() + " | Restaurant: " +
-                    order.getRestaurantId() + " | Status: " + order.getStatus());
+        try {
+            MongoCollection<Document> orders = db.getCollection("orders");
+            System.out.println("\n--- Orders ---");
+            for (Document doc : orders.find()) {
+                Order order = Order.fromDocument(doc);
+                System.out.println(order.getId() + " | Restaurant: " +
+                        order.getRestaurantId() + " | Status: " + order.getStatus());
+            }
+        } catch (Exception e) {
+            System.out.println("Error while listing orders." + e.getMessage());
         }
     }
 
     public void mostOrderedItems() {
-        MongoCollection<Document> orders = db.getCollection("orders");
-        List<Document> pipeline = Arrays.asList(
-                new Document("$unwind", "$items"),
-                new Document("$group", new Document("_id", "$items.name")
-                        .append("totalOrdered", new Document("$sum", "$items.quantity"))),
-                new Document("$sort", new Document("totalOrdered", -1)),
-                new Document("$limit", 5)
-        );
-        AggregateIterable<Document> result = orders.aggregate(pipeline);
-        System.out.println("\n--- Most Ordered Items ---");
-        for (Document doc : result) {
-            System.out.println(doc.getString("_id") + ": " + doc.getInteger("totalOrdered"));
+        try {
+            MongoCollection<Document> orders = db.getCollection("orders");
+            List<Document> pipeline = Arrays.asList(
+                    new Document("$unwind", "$items"),
+                    new Document("$group", new Document("_id", "$items.name")
+                            .append("totalOrdered", new Document("$sum", "$items.quantity"))),
+                    new Document("$sort", new Document("totalOrdered", -1)),
+                    new Document("$limit", 5)
+            );
+            AggregateIterable<Document> result = orders.aggregate(pipeline);
+            System.out.println("\n--- Most Ordered Items ---");
+            for (Document doc : result) {
+                System.out.println(doc.getString("_id") + ": " + doc.getInteger("totalOrdered"));
+            }
+        } catch (Exception e) {
+            System.out.println("Error while aggregate function." + e.getMessage());
         }
     }
 }

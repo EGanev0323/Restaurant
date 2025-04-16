@@ -1,10 +1,10 @@
 package services;
+
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import models.MenuItem;
 import models.Restaurant;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +21,16 @@ public class RestaurantService {
     }
 
     public void addRestaurant(Scanner scanner) {
-        System.out.print("Restaurant name: ");
-        String name = scanner.nextLine();
-        int nextId = counterService.getNextSequence("restaurantid");
-        Restaurant restaurant = new Restaurant(nextId, name, new ArrayList<>());
-        db.getCollection("restaurants").insertOne(restaurant.toDocument());
-        System.out.println("Restaurant added with id: " + nextId);
+        try {
+            System.out.print("Restaurant name: ");
+            String name = scanner.nextLine();
+            int nextId = counterService.getNextSequence("restaurantid");
+            Restaurant restaurant = new Restaurant(nextId, name, new ArrayList<>());
+            db.getCollection("restaurants").insertOne(restaurant.toDocument());
+            System.out.println("Restaurant added with id: " + nextId);
+        } catch (Exception e) {
+            System.out.println("Error while adding restaurant." + e.getMessage());
+        }
     }
 
     public List<Restaurant> getAllRestaurants() {

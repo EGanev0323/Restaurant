@@ -1,3 +1,4 @@
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import models.MongoConnection;
@@ -10,8 +11,16 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
 
-        MongoClient client = MongoConnection.connect();
-        MongoDatabase db = client.getDatabase("food_delivery");
+        MongoClient client =null;
+        MongoDatabase db = null;
+        try {
+            client=MongoConnection.connect();
+            db=client.getDatabase("food_delivery");
+            db.listCollectionNames().first();
+        }catch (MongoException e){
+            System.out.println("Could not connect to MongoDB:" + e.getMessage());
+            System.exit(1);
+        }
         Scanner scanner = new Scanner(System.in);
 
         CounterService counterService = new CounterService(db);
@@ -32,15 +41,32 @@ public class Main {
             int choice = Integer.parseInt(scanner.nextLine());
 
             switch (choice) {
-                case 1: restaurantService.addRestaurant(scanner); break;
-                case 2: restaurantService.listRestaurants(); break;
-                case 3: restaurantService.addMenuItem(scanner); break;
-                case 4: orderService.placeOrder(scanner); break;
-                case 5: orderService.trackOrder(scanner); break;
-                case 6: orderService.listOrders(); break;
-                case 7: orderService.mostOrderedItems(); break;
-                case 0: client.close(); return;
-                default: System.out.println("Invalid choice!");
+                case 1:
+                    restaurantService.addRestaurant(scanner);
+                    break;
+                case 2:
+                    restaurantService.listRestaurants();
+                    break;
+                case 3:
+                    restaurantService.addMenuItem(scanner);
+                    break;
+                case 4:
+                    orderService.placeOrder(scanner);
+                    break;
+                case 5:
+                    orderService.trackOrder(scanner);
+                    break;
+                case 6:
+                    orderService.listOrders();
+                    break;
+                case 7:
+                    orderService.mostOrderedItems();
+                    break;
+                case 0:
+                    client.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice!");
             }
         }
     }
