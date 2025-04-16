@@ -70,6 +70,41 @@ public class OrderService {
         System.out.println("Order placed with id: " + nextOrderId);
     }
 
+    public void updateOrderStatus(Scanner scanner) {
+        try {
+            System.out.print("Enter order ID: ");
+            int orderId;
+            try {
+                orderId = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid order ID!");
+                return;
+            }
+            Document doc = db.getCollection("orders")
+                    .find(new Document("_id", orderId)).first();
+            if (doc == null) {
+                System.out.println("Order not found!");
+                return;
+            }
+            Order order = Order.fromDocument(doc);
+            System.out.println("Current status: " + order.getStatus());
+            System.out.print("Enter new status (pending/completed/cancelled): ");
+            String newStatus = scanner.nextLine().trim().toLowerCase();
+            if (!newStatus.equals("pending") && !newStatus.equals("completed") && !newStatus.equals("cancelled")) {
+                System.out.println("Invalid status!");
+                return;
+            }
+            db.getCollection("orders").updateOne(
+                    new Document("_id", orderId),
+                    new Document("$set", new Document("status", newStatus))
+            );
+            System.out.println("Order status updated to: " + newStatus);
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating order status: " + e.getMessage());
+        }
+    }
+
+
     public Restaurant getRestaurantById(int id) {
         try {
             List<Restaurant> restaurants = restaurantService.getAllRestaurants();
