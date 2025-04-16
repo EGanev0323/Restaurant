@@ -145,8 +145,10 @@ public class OrderService {
             System.out.println("\n--- Orders ---");
             for (Document doc : orders.find()) {
                 Order order = Order.fromDocument(doc);
+                double totalPrice=order.getItems().stream().mapToDouble(item->item.getPrice()*item.getQuantity()).sum();
                 System.out.println(order.getId() + " | Restaurant: " +
-                        order.getRestaurantId() + " | Status: " + order.getStatus());
+                        getRestaurantById(order.getRestaurantId()).getName() + " | Status: " + order.getStatus() +
+                        " | Total price: " + String.format("%.2f",totalPrice) + "лв");
             }
         } catch (Exception e) {
             System.out.println("Error while listing orders." + e.getMessage());
@@ -170,6 +172,25 @@ public class OrderService {
             }
         } catch (Exception e) {
             System.out.println("Error while aggregate function." + e.getMessage());
+        }
+    }
+
+    public void mostOrderedItemsByRestaurant() {
+        MongoCollection<Document> orders = db.getCollection("orders");
+        List<Document> pipeline = Arrays.asList(
+                new Document("$unwind", "$items"),
+                new Document("$group", new Document("_id", new Document("restaurantId", "$restaurantId").append("item", "$items.name"))
+                        .append("totalOrdered", new Document("$sum", "$items.quantity"))),
+                new Document("$sort", new Document("_id.restaurantId", 1).append("totalOrdered", -1))
+        );
+        AggregateIterable<Document> result = orders.aggregate(pipeline);
+        System.out.println("\n--- Most Ordered Items By Restaurant ---");
+        for (Document doc : result) {
+            Document idDoc = (Document) doc.get("_id");
+            int restaurantId = idDoc.getInteger("restaurantId");
+            String item = idDoc.getString("item");
+            int total = doc.getInteger("totalOrdered");
+            System.out.println("Restaurant " + getRestaurantById(restaurantId).getName() + " | " + item + ": " + total);
         }
     }
 }

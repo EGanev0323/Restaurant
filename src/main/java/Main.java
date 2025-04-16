@@ -37,6 +37,7 @@ public class Main {
             System.out.println("6. List Orders");
             System.out.println("7. Update Order Status");
             System.out.println("8. Most Ordered Items (Aggregation)");
+            System.out.println("9. Most Ordered Items Group By Restaurants (Aggregation)");
             System.out.println("0. Exit");
             System.out.print("Choose: ");
             int choice = Integer.parseInt(scanner.nextLine());
@@ -65,6 +66,9 @@ public class Main {
                     break;
                 case 8:
                     orderService.mostOrderedItems();
+                    break;
+                case 9:
+                    orderService.mostOrderedItemsByRestaurant();
                     break;
                 case 0:
                     client.close();

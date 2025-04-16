@@ -42,6 +42,15 @@ public class RestaurantService {
         return result;
     }
 
+    public Restaurant getRestaurantById(int id) {
+        Document doc=db.getCollection("restaurants").find(new Document("id", id)).first();
+        if (doc==null) {
+            System.out.println("Restaurant with id: " + id + " not found");
+            return null;
+        }
+        return Restaurant.fromDocument(doc);
+    }
+
     public void listRestaurants() {
         List<Restaurant> restaurants = getAllRestaurants();
         System.out.println("\n--- Restaurants ---");
