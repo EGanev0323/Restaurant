@@ -31,13 +31,14 @@ public class Main {
             System.out.println("\n--- Food Delivery Backend ---");
             System.out.println("1. Add Restaurant");
             System.out.println("2. List Restaurants");
-            System.out.println("3. Add Menu Item");
-            System.out.println("4. Place Order");
-            System.out.println("5. Track Order");
-            System.out.println("6. List Orders");
-            System.out.println("7. Update Order Status");
-            System.out.println("8. Most Ordered Items (Aggregation)");
-            System.out.println("9. Most Ordered Items Group By Restaurants (Aggregation)");
+            System.out.println("3. Delete Restaurant");
+            System.out.println("4. Add Menu Item");
+            System.out.println("5. Place Order");
+            System.out.println("6. Track Order");
+            System.out.println("7. List Orders");
+            System.out.println("8. Update Order Status");
+            System.out.println("9. Most Ordered Items (Aggregation)");
+            System.out.println("10. Most Ordered Items Group By Restaurants (Aggregation)");
             System.out.println("0. Exit");
             System.out.print("Choose: ");
             int choice = Integer.parseInt(scanner.nextLine());
@@ -50,24 +51,27 @@ public class Main {
                     restaurantService.listRestaurants();
                     break;
                 case 3:
-                    restaurantService.addMenuItem(scanner);
+                    restaurantService.deleteRestaurantById(scanner);
                     break;
                 case 4:
-                    orderService.placeOrder(scanner);
+                    restaurantService.addMenuItem(scanner);
                     break;
                 case 5:
-                    orderService.trackOrder(scanner);
+                    orderService.placeOrder(scanner);
                     break;
                 case 6:
-                    orderService.listOrders();
+                    orderService.trackOrder(scanner);
                     break;
                 case 7:
-                    orderService.updateOrderStatus(scanner);
+                    orderService.listOrders();
                     break;
                 case 8:
-                    orderService.mostOrderedItems();
+                    orderService.updateOrderStatus(scanner);
                     break;
                 case 9:
+                    orderService.mostOrderedItems();
+                    break;
+                case 10:
                     orderService.mostOrderedItemsByRestaurant();
                     break;
                 case 0:

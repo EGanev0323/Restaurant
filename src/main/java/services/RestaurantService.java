@@ -42,6 +42,45 @@ public class RestaurantService {
         return result;
     }
 
+
+//не е тестван дали и как точно работи
+    public void deleteRestaurantById(Scanner scanner) {
+        try {
+            System.out.print("Enter restaurant ID to delete: ");
+            int restId;
+            try {
+                restId = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid restaurant ID!");
+                return;
+            }
+
+            long relatedOrders = db.getCollection("orders").countDocuments(new Document("restaurantId", restId));
+            if (relatedOrders > 0) {
+                System.out.println("There are " + relatedOrders + " orders related with this restaurant, do you want to delete? (yes/no)");
+                String answer = scanner.nextLine().toLowerCase();
+                if (!answer.equals("yes")) {
+                    System.out.println("Deletion cancelled.");
+                    return;
+                }
+            }
+
+            long deleted = db.getCollection("restaurants").deleteOne(new Document("_id", restId)).getDeletedCount();
+            if (deleted > 0) {
+                System.out.println("Restaurant deleted successfully.");
+                long ordersDeleted = db.getCollection("orders").deleteMany(new Document("restaurantId", restId)).getDeletedCount();
+                if (ordersDeleted > 0) {
+                    System.out.println("Also deleted " + ordersDeleted + " related orders.");
+                }
+            } else {
+                System.out.println("Restaurant not found.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error deleting restaurant: " + e.getMessage());
+        }
+    }
+
+
     public Restaurant getRestaurantById(int id) {
         Document doc=db.getCollection("restaurants").find(new Document("id", id)).first();
         if (doc==null) {
